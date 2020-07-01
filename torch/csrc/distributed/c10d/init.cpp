@@ -115,6 +115,11 @@ PyObject* c10d_init(PyObject* _unused) {
 
   auto module = py::handle(c10d_module).cast<py::module>();
 
+  shared_ptr_class_<::c10d::GradBucket>(module, "GradBucket")
+      .def(
+          py::init<std::vector<Tensor>>(),
+          py::arg("tensors") = std::vector<Tensor>());
+
   shared_ptr_class_<::c10d::Reducer>(module, "Reducer")
       .def(
           py::init<
@@ -130,6 +135,10 @@ PyObject* c10d_init(PyObject* _unused) {
           py::arg("expect_sparse_gradients") = std::vector<std::vector<bool>>(),
           py::arg("bucket_bytes_cap") = ::c10d::kDefaultBucketBytesCap,
           py::arg("find_unused_parameters") = false,
+          py::call_guard<py::gil_scoped_release>())
+      .def(
+          "register_comm_hook",
+          &::c10d::Reducer::register_comm_hook,
           py::call_guard<py::gil_scoped_release>())
       .def(
           "initialize_buckets",
